@@ -1,0 +1,14 @@
+*.pyc
+*.DS_Store
+.idea
+*.orig
+*.iml
+*.coverage
+*.sass-cache
+*.log*
+env/
+reports/*
+*.pem
+*.p12
+version.props
+CL-*
