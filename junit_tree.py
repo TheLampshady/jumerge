@@ -53,10 +53,10 @@ class JUnitTestSuite(object):
             self.root.append(add_child)
 
     def add_cdata(self):
-        cdata_format = "\n<![CDATA[%s]]\>\n"
+        cdata_format = "\n<![CDATA[\n%s\n]]\>\n"
         for child in self.root:
             system_out = child.find('system-out')
-            system_out.text = cdata_format % system_out.text
+            system_out.text = cdata_format % system_out.text.strip()
 
     def is_same_element(self, node1, node2):
         if node1.attrib.get(self.step_name) == node2.attrib.get(self.step_name):
