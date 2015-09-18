@@ -88,7 +88,7 @@ class ReportsParser(object):
         directory_path = '{0}/{1}'.format(parent_dir, directory_name)
 
         if directory_name not in valid_choices:
-            self.logger.warn("You've got a bad breakpoint ".format(directory_name))
+            self.logger.warn("Invalid Directory: %s" % directory_name)
             return False
         if isfile(directory_path):
             self.logger.warn("You've got a loose file in your test reports {0}".format(directory_path))
