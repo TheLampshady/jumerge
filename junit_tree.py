@@ -75,11 +75,18 @@ class JUnitTestSuite(object):
                     return True
                 try:
                     failure1 = node1.find('failure')
-                    if failure1 is not None:
+                    if failure1 is None:
                         failure1 = node1.find('error')
-                    failure2 = node2.find('failure')
-                    if failure2 is not None:
                         failure2 = node1.find('error')
+
+                        if failure1 is None or failure2 is None:
+                            return False
+
+                    else:
+                        failure2 = node2.find('failure')
+                        if failure2 is None:
+                            False
+
                     if failure1.attrib.get(self.failure_message) == \
                             failure2.attrib.get(self.failure_message):
                         return True
