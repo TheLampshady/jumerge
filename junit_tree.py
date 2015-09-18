@@ -1,4 +1,6 @@
+import re
 import xml.etree.ElementTree as ET
+#from lxml import etree as ET
 
 
 class JUnitTestSuite(object):
@@ -10,23 +12,27 @@ class JUnitTestSuite(object):
         self.failure_message = 'message'
         self.split_char = ' | '
 
+        #parser = ET.XMLParser(strip_cdata=False)
+        #tree = ET.parse(file_path, parser)
         tree = ET.parse(file_path)
         self.root = tree.getroot()
 
         self.add_new_title(report_type)
 
     def __str__(self):
-        return ET.tostring(self.root, 'utf-8')
+        result = ET.tostring(self.root, 'utf-8')
+        result = re.sub(r'&lt;!\[CDATA\[', '<![CDATA[', result)
+        result = re.sub(r']]\\&gt;', ']]>', result)
+        return result
 
     def __repr__(self):
         return str(self)
 
     def add_new_title(self, test_type):
         for index, child in enumerate(self.root):
-            class_name = self.split_char
-            class_name += test_type
+            class_name = child.attrib.get('classname')
             class_name += self.split_char
-            class_name += child.attrib.get('classname')
+            class_name += test_type
             self.root[index].attrib['classname'] = class_name
 
     def add_title(self, test_type, add_child):
@@ -34,17 +40,23 @@ class JUnitTestSuite(object):
         for index, child in enumerate(self.root):
 
             if self.is_same_element(child, add_child):
-                class_name = self.split_char + test_type + child.attrib.get('classname')
+                class_name = child.attrib.get('classname') + self.split_char + test_type
                 self.root[index].attrib['classname'] = class_name
                 found = True
 
         if not found:
-            class_name = self.split_char
-            class_name += test_type
+            class_name = add_child.attrib.get('classname')
             class_name += self.split_char
-            class_name += add_child.attrib.get('classname')
+            class_name += test_type
+
             add_child.attrib['classname'] = class_name
             self.root.append(add_child)
+
+    def add_cdata(self):
+        cdata_format = "\n<![CDATA[%s]]\>\n"
+        for child in self.root:
+            system_out = child.find('system-out')
+            system_out.text = cdata_format % system_out.text
 
     def is_same_element(self, node1, node2):
         if node1.attrib.get(self.step_name) == node2.attrib.get(self.step_name):
@@ -88,4 +100,5 @@ class JUnitTestSuite(object):
         self.root.attrib["errors"] = str(count["errors"])
         self.root.attrib["failures"] = str(count["failures"])
         self.root.attrib["skipped"] = str(count["skipped"])
-        pass
+
+        self.add_cdata()

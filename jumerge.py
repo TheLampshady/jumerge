@@ -16,14 +16,13 @@ class ReportsParser(object):
         self.allowed_browsers = ['firefox', 'chrome', 'phantomjs']
         self.allowed_window_size = ['small', 'medium', 'large']
         self.junit_tree_list = dict()
-        self.setup_logger()
+        self.logger = setup_logger()
 
         allowed_stack = [self.allowed_window_size, self.allowed_browsers]
         reports = self.parse_report_directory(self.reports_dir, allowed_stack)
 
         file_structure = self.make_file_structure(reports)
         self.merge_reports(file_structure)
-        self.export_xml_files()
 
     def merge_reports(self, file_structure):
         report_type, file_list = file_structure.popitem()
@@ -39,19 +38,6 @@ class ReportsParser(object):
                     self.junit_tree_list[class_suite_name].update_tree(file_path, report_type)
                 else:
                     self.junit_tree_list[class_suite_name] = JUnitTestSuite(file_path, report_type)
-
-    def export_xml_files(self):
-        result_dir = "%s/%s" % (self.reports_dir, 'merged')
-        if not exists(result_dir):
-                makedirs(result_dir)
-        self.logger.info("Records Found: %s" % len(self.junit_tree_list))
-        for report_name, junit_tree in self.junit_tree_list.items():
-            file_name = "%s/%s.xml" % (result_dir, report_name)
-            junit_tree.update_status()
-            target = open(file_name, 'w')
-            target.write(str(junit_tree))
-            target.close()
-
 
     # TODO Make dynamic in depth
     def make_file_structure(self, reports):
@@ -113,33 +99,51 @@ class ReportsParser(object):
 
         return True
 
+    def export_reports(self, merge_directory):
+        if not exists(merge_directory):
+                makedirs(merge_directory)
+        self.logger.info("Records Found: %s" % len(self.junit_tree_list))
+        for report_name, junit_tree in self.junit_tree_list.items():
+            file_name = "%s/%s.xml" % (merge_directory, report_name)
+            junit_tree.update_status()
+            target = open(file_name, 'w')
+            header = "<?xml version='1.0' encoding='UTF-8'?>\n"
+            target.write(header)
+            target.write(str(junit_tree))
+            target.close()
 
-    def setup_logger(self):
-        logger = logging.getLogger('reports parser')
-        logger.setLevel(logging.DEBUG)
 
-        # create console handler and set level to debug
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
+def setup_logger():
+    logger = logging.getLogger('reports parser')
+    logger.setLevel(logging.DEBUG)
 
-        # create formatter
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
 
-        # add formatter to ch
-        ch.setFormatter(formatter)
+    # create formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-        # add ch to logger
-        logger.addHandler(ch)
-        self.logger = logger
+    # add formatter to ch
+    ch.setFormatter(formatter)
+
+    # add ch to logger
+    logger.addHandler(ch)
+    return logger
 
 
 def main():
     parser = argparse.ArgumentParser(prog='bdd reports utility')
     parser.add_argument('--reports_dir', default='reports', help='reports directory')
-
     args = parser.parse_args()
-    parser = ReportsParser(args.reports_dir)
 
+    if not exists(args.reports_dir) or not isdir(args.reports_dir):
+        print "Error: Please provide a valid directory for JUnit Reports."
+        return 1
+
+    parser = ReportsParser(args.reports_dir)
+    merge_directory = "%s/%s" % (parser.reports_dir, 'merged')
+    parser.export_reports(merge_directory)
 
 if __name__ == "__main__":
     main()
