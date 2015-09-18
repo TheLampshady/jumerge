@@ -137,7 +137,7 @@ def main():
     parser.add_argument('-d', '--dir', default='reports', help='reports directory')
     args = parser.parse_args()
 
-    if not exists(args.reports_dir) or not isdir(args.reports_dir):
+    if not exists(args.dir) or not isdir(args.dir):
         print "Error: Please provide a valid directory for JUnit Reports."
         return 1
 
