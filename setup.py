@@ -8,5 +8,10 @@ setup(
     name="jumerge",
     version="1.0",
     description="Huge Library for merging JUNIT reports. Avoids repeats accross multiple browsers and sizes.",
-    py_modules=['jumerge', 'junit_tree']
+    py_modules=['jumerge', 'junit_tree'],
+    entry_points={
+        'console_scripts': [
+            'jumerge=jumerge:main',
+        ],
+    },
 )
