@@ -94,6 +94,13 @@ class JUnitTestSuite(object):
         for child in root:
             self.add_title(report_type, child)
 
+        old_time = self.root.attrib.get('time')
+        new_time = root.attrib.get('time')
+        if (old_time is not None) and (new_time is not None):
+            if float(old_time) < float(new_time):
+                self.root.attrib['time'] = str(new_time)
+
+
     def update_status(self):
         count = {"errors": 0, "failures": 0, "skipped": 0, "tests": 0}
         for child in self.root:
@@ -109,5 +116,6 @@ class JUnitTestSuite(object):
         self.root.attrib["errors"] = str(count["errors"])
         self.root.attrib["failures"] = str(count["failures"])
         self.root.attrib["skipped"] = str(count["skipped"])
+        self.root.attrib["tests"] = str(len(self.root))
 
         self.add_cdata()
