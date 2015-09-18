@@ -134,7 +134,7 @@ def setup_logger():
 
 def main():
     parser = argparse.ArgumentParser(prog='bdd reports utility')
-    parser.add_argument('--reports_dir', default='reports', help='reports directory')
+    parser.add_argument('-d', '--dir', default='reports', help='reports directory')
     args = parser.parse_args()
 
     if not exists(args.reports_dir) or not isdir(args.reports_dir):
