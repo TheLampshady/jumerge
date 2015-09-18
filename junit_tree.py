@@ -55,8 +55,17 @@ class JUnitTestSuite(object):
     def add_cdata(self):
         cdata_format = "\n<![CDATA[\n%s\n]]\>\n"
         for child in self.root:
-            system_out = child.find('system-out')
-            system_out.text = cdata_format % system_out.text.strip()
+            content_tag = child.find('failure')
+            if content_tag is not None:
+                content_tag.text = cdata_format % content_tag.text.strip()
+
+            content_tag = child.find('error')
+            if content_tag is not None:
+                content_tag.text = cdata_format % content_tag.text.strip()
+
+            content_tag = child.find('system-out')
+            if content_tag is not None:
+                content_tag.text = cdata_format % content_tag.text.strip()
 
     def is_same_element(self, node1, node2):
         if node1.attrib.get(self.step_name) == node2.attrib.get(self.step_name):
