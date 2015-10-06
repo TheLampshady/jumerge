@@ -14,8 +14,11 @@ class JUnitTestSuite(object):
 
         #parser = ET.XMLParser(strip_cdata=False)
         #tree = ET.parse(file_path, parser)
-        tree = ET.parse(file_path)
-        self.root = tree.getroot()
+        try:
+            tree = ET.parse(file_path)
+            self.root = tree.getroot()
+        except ET.ParseError as ep:
+            raise ep
 
         self.add_new_title(report_type)
 
@@ -95,8 +98,12 @@ class JUnitTestSuite(object):
         return False
 
     def update_tree(self, file_path, report_type):
-        tree = ET.parse(file_path)
-        root = tree.getroot()
+
+        try:
+            tree = ET.parse(file_path)
+            root = tree.getroot()
+        except ET.ParseError as ep:
+            raise ep
 
         for child in root:
             self.add_title(report_type, child)

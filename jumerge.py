@@ -18,6 +18,8 @@ class ReportsParser(object):
         self.junit_tree_list = dict()
         self.logger = setup_logger()
 
+        self.invalid_files = list()
+
         allowed_stack = [self.allowed_window_size, self.allowed_browsers]
         reports = self.parse_report_directory(self.reports_dir, allowed_stack)
 
@@ -29,15 +31,23 @@ class ReportsParser(object):
 
         for file_path in file_list:
             class_suite_name = splitext(basename(file_path))[0]
-            self.junit_tree_list[class_suite_name] = JUnitTestSuite(file_path, report_type)
+            try:
+                self.junit_tree_list[class_suite_name] = JUnitTestSuite(file_path, report_type)
+            except Exception as e:
+                self.invalid_files.append(file_path)
+                logging.exception(e)
 
         for report_type, file_list in file_structure.items():
             for file_path in file_list:
                 class_suite_name = splitext(basename(file_path))[0]
-                if self.junit_tree_list.get(class_suite_name):
-                    self.junit_tree_list[class_suite_name].update_tree(file_path, report_type)
-                else:
-                    self.junit_tree_list[class_suite_name] = JUnitTestSuite(file_path, report_type)
+                try:
+                    if self.junit_tree_list.get(class_suite_name):
+                        self.junit_tree_list[class_suite_name].update_tree(file_path, report_type)
+                    else:
+                        self.junit_tree_list[class_suite_name] = JUnitTestSuite(file_path, report_type)
+                except Exception as e:
+                    self.invalid_files.append(file_path)
+                    logging.exception(e)
 
     # TODO Make dynamic in depth
     def make_file_structure(self, reports):
@@ -112,6 +122,9 @@ class ReportsParser(object):
             target.write(str(junit_tree))
             target.close()
 
+    def display_errors(self):
+        logging.error("Invalid XML Files: \n\t%s" % "\n\t".join(self.invalid_files))
+
 
 def setup_logger():
     logger = logging.getLogger('reports parser')
@@ -145,6 +158,8 @@ def main():
     parser = ReportsParser(reports_dir)
     merge_directory = "%s/%s" % (reports_dir, 'merged')
     parser.export_reports(merge_directory)
+
+    parser.display_errors()
 
 if __name__ == "__main__":
     main()
